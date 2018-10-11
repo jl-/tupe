@@ -1,3 +1,5 @@
+import glob from 'glob';
+import Suite from './suite';
 import Server from './server';
 import Browser from './browser';
 import Reporter from './reporter';
@@ -5,14 +7,25 @@ import Metrics from './utils/metrics';
 import * as status from './meta/status';
 
 export default class Agent {
-    constructor ({ watch, files }) {
-        this.watch = watch;
-        this.entries = files;
+    constructor (entryPaths, options = {}) {
+        this.options = options;
+        this.suites = new Map();
+        this.addSuites(entryPaths);
 
         this.browser = new Browser();
-        this.server = new Server({ watch });
-        this.metrics = new Metrics(status.INIT);
+        this.metrics = new Metrics();
         this.reporter = new Reporter();
+        this.server = new Server(options);
+    }
+
+    addSuites (entryPaths) {
+        const paths = entryPaths
+            .reduce((r, p) => r.concat(glob.sync(p, { nodir: true })), []);
+
+        for (const fpath of [...new Set(paths)]) {
+            const suite = new Suite(fpath, this.options.tmpdir);
+            this.suites.set(suite.path, suite);
+        }
     }
 
     async run () {
@@ -23,7 +36,7 @@ export default class Agent {
 
         process.once('SIGINT', async () => await this.stop());
 
-        return this.server.start();
+        return this.server.start(this.suites);
     }
 
     async stop () {
@@ -33,6 +46,6 @@ export default class Agent {
     }
 }
 
-export function run (params) {
-    return (new Agent(params)).run();
+export function run (files, options) {
+    return (new Agent(files, options)).run();
 }

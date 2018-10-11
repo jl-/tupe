@@ -1,23 +1,15 @@
 import chalk from 'chalk';
+import { intercept } from './proxy';
 
-const string = {
+export default intercept(chalk, {
     log: chalk.gray,
     info: chalk.gray,
     desc: chalk.gray,
     hint: chalk.dim,
     warn: chalk.red,
     error: chalk.red,
-    stack: chalk.red,
     ok: chalk.green,
     pass: chalk.green,
-    skip: chalk.yellow,
-    todo: chalk.blue,
-    title: chalk.bold.white,
-    duration: chalk.gray.dim,
-};
-
-export default new Proxy(string, {
-    get (target, prop) {
-        return prop in target ? target[prop] : chalk[prop];
-    }
 });
+
+export const uid = (i => p => `${p || ''}${i++}`)(0);

@@ -1,0 +1,27 @@
+{
+  "name": "tupe",
+  "version": "0.0.0",
+  "description": "unit testing library",
+  "main": "index.js",
+  "repository": "https://github.com/jl-/tupe.git",
+  "author": "z.cius <zr.cius@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "babel src -d lib",
+    "example": "./bin/tupe"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.1.2",
+    "chalk": "^2.4.1",
+    "puppeteer": "^1.9.0",
+    "yargs": "^12.0.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.1.2",
+    "@babel/core": "^7.1.2",
+    "@babel/plugin-proposal-class-properties": "^7.1.0",
+    "@babel/plugin-proposal-function-bind": "^7.0.0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
+    "@babel/preset-env": "^7.1.0"
+  }
+}

@@ -7,13 +7,18 @@
   "author": "z.cius <zr.cius@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "babel src -d lib",
+    "build": "babel src -d lib --copy-files",
     "example": "./bin/tupe"
   },
   "dependencies": {
     "@babel/runtime": "^7.1.2",
     "chalk": "^2.4.1",
+    "debug": "^4.1.0",
+    "fs-extra": "^7.0.0",
+    "glob": "^7.1.3",
+    "parcel-bundler": "^1.10.2",
     "puppeteer": "^1.9.0",
+    "string-hash": "^1.1.3",
     "yargs": "^12.0.2"
   },
   "devDependencies": {

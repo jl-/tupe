@@ -2,6 +2,8 @@
 .npmrc
 yarn-error.log
 
+dist
+.cache
 .vscode
 coverage
 .nyc_output

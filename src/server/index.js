@@ -1,18 +1,24 @@
-import http from 'http';
 import EventEmitter from 'events';
+import Bundler from 'parcel-bundler';
 
 export default class Server extends EventEmitter {
-    constructor () {
+    constructor (options = {}) {
         super();
         this.server = null;
+        this.tmpdir = options.tmpdir;
     }
 
-    async start () {
-        const handler = () => console.log('xef');
-        this.server = http.createServer(handler);
-        this.server.listen(2344, err => {
-            console.log('errss: ', err);
+    async start (suites) {
+        const entryPaths = [];
+        for (const suite of suites.values()) {
+            entryPaths.push(suite.htmlPath);
+        }
+
+        this.bundler = new Bundler(entryPaths, {
+            outDir: this.tmpdir, hmr: true
         });
+
+        return this.bundler.serve(1235);
     }
 
     async stop () {

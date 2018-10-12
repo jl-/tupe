@@ -30,6 +30,14 @@ export default class Browser extends EventEmitter {
 
     async runSuite (suite) {
         const page = await this.newPage();
+        page.exposeFunction('onSpecFinished', spec => {
+            this.emit('specFinished', suite, spec);
+        });
+
+        page.exposeFunction('onSuiteFinished', (passed, cov) => {
+            this.emit('suiteFinished', suite, passed, cov);
+        });
+
         await page.goto(suite.url);
     }
 

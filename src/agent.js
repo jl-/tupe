@@ -7,7 +7,7 @@ import Metrics from './utils/metrics';
 import * as status from './meta/status';
 
 export default class Agent {
-    constructor (filePaths, options = {}) {
+    constructor (files, options = {}) {
         this.options = options;
         this.suites = new Map();
 
@@ -16,11 +16,11 @@ export default class Agent {
         this.server = new Server(options);
         this.reporter = new Reporter(this);
 
-        this.addSuites(filePaths);
+        this.addSuites(files);
     }
 
-    addSuites (filePaths) {
-        const entryPaths = filePaths
+    addSuites (files) {
+        const entryPaths = files
             .reduce((r, p) => r.concat(glob.sync(p, { nodir: true })), []);
 
         for (const entryPath of [...new Set(entryPaths)]) {
@@ -36,6 +36,8 @@ export default class Agent {
         this.metrics.record(status.PENDING);
 
         this.server.on('bundled', ::this.digest);
+        this.browser.on('specFinished', ::this.onSpecFinished);
+        this.browser.on('suiteFinished', ::this.onSuiteFinished);
 
         process.once('SIGINT', async () => await this.stop());
 
@@ -50,6 +52,14 @@ export default class Agent {
         }
     }
 
+    async onSpecFinished (suite, spec) {
+        this.reporter.receive(suite, suite.addSpec(spec));
+    }
+
+    async onSuiteFinished (suite, passed, cov) {
+        //
+    }
+
     async stop () {
         await this.server.stop();
         await this.browser.exit();
@@ -57,6 +67,6 @@ export default class Agent {
     }
 }
 
-export function run (filePaths, options) {
-    return (new Agent(filePaths, options)).run();
+export function run (files, options) {
+    return (new Agent(files, options)).run();
 }

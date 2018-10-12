@@ -1,4 +1,5 @@
 import path from 'path';
+import Spec from '../spec';
 import fs from '../utils/fs';
 import hash from 'string-hash';
 import * as status from '../meta/status';
@@ -17,6 +18,11 @@ export default class Suite {
 
     forServer (port, host = 'localhost') {
         this.url = `http://${host}:${port}/${this.name}`;
+    }
+
+    addSpec (data) {
+        const spec = Spec.derive(data);
+        return spec;
     }
 }
 

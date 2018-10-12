@@ -2,18 +2,17 @@ import assert from 'assert';
 import now from '../utils/now';
 import * as status from '../meta/status';
 
-// var assert = require('power-assert').customize({
-//     output: {
-//         maxDepth: 2
-//     }
-// });
-
 export default class Spec {
-    constructor (title, fn) {
+    constructor (title, fn, type) {
+        this.type = type;
+        this.error = '';
         this.status = status.INIT;
         this.fn = typeof fn === 'function' ? fn : title;
         this.title = typeof title === 'string' ? title : '';
-        this.error = null;
+    }
+
+    static derive (spec) {
+        return Object.setPrototypeOf(spec, this.prototype);
     }
 
     get failed () {
@@ -59,10 +58,10 @@ export default class Spec {
         if (this.passed) {
             this.resolve();
         } else {
-            this.message = err.message ||
+            this.error = err.message ||
                 (typeof err === 'string' && err) ||
                 'failed wiht no or falsy reason';
-            this.reject(this.message);
+            this.reject(this.error);
         }
     }
 }

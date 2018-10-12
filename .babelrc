@@ -1,5 +1,5 @@
 {
-    "presets": ["@babel/env"],
+    "presets": ["@babel/env", "power-assert"],
     "plugins": [
         "@babel/plugin-proposal-function-bind",
         "@babel/plugin-proposal-class-properties",

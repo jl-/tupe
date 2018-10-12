@@ -1,24 +1,31 @@
 import EventEmitter from 'events';
 import Bundler from 'parcel-bundler';
+import { getPortPromise } from 'portfinder';
 
 export default class Server extends EventEmitter {
-    constructor (options = {}) {
+    constructor (options) {
         super();
-        this.server = null;
+        this.host = 'localhost';
+        this.port = options.port;
+        this.watch = options.watch;
         this.tmpdir = options.tmpdir;
     }
 
     async start (suites) {
-        const entryPaths = [];
+        const suitePaths = [];
         for (const suite of suites.values()) {
-            entryPaths.push(suite.htmlPath);
+            suitePaths.push(suite.path);
         }
 
-        this.bundler = new Bundler(entryPaths, {
-            outDir: this.tmpdir, hmr: true
-        });
+        const port = this.port;
+        this.port = await getPortPromise({ port });
 
-        return this.bundler.serve(1235);
+        this.bundler = new Bundler(suitePaths, {
+            outDir: this.tmpdir, hmr: this.watch
+        });
+        this.bundler.on('bundled', b => this.emit('bundled', b));
+
+        return this.bundler.serve(this.port);
     }
 
     async stop () {

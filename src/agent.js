@@ -7,23 +7,24 @@ import Metrics from './utils/metrics';
 import * as status from './meta/status';
 
 export default class Agent {
-    constructor (entryPaths, options = {}) {
+    constructor (filePaths, options = {}) {
         this.options = options;
         this.suites = new Map();
-        this.addSuites(entryPaths);
 
         this.browser = new Browser();
         this.metrics = new Metrics();
-        this.reporter = new Reporter();
         this.server = new Server(options);
+        this.reporter = new Reporter(this);
+
+        this.addSuites(filePaths);
     }
 
-    addSuites (entryPaths) {
-        const paths = entryPaths
+    addSuites (filePaths) {
+        const entryPaths = filePaths
             .reduce((r, p) => r.concat(glob.sync(p, { nodir: true })), []);
 
-        for (const fpath of [...new Set(paths)]) {
-            const suite = new Suite(fpath, this.options.tmpdir);
+        for (const entryPath of [...new Set(entryPaths)]) {
+            const suite = new Suite(entryPath, this.server.tmpdir);
             this.suites.set(suite.path, suite);
         }
     }
@@ -34,9 +35,19 @@ export default class Agent {
 
         this.metrics.record(status.PENDING);
 
+        this.server.on('bundled', ::this.digest);
+
         process.once('SIGINT', async () => await this.stop());
 
         return this.server.start(this.suites);
+    }
+
+    async digest () {
+        const server = this.server;
+        for (const suite of this.suites.values()) {
+            suite.forServer(server.port, server.host);
+            await this.browser.runSuite(suite);
+        }
     }
 
     async stop () {
@@ -46,6 +57,6 @@ export default class Agent {
     }
 }
 
-export function run (files, options) {
-    return (new Agent(files, options)).run();
+export function run (filePaths, options) {
+    return (new Agent(filePaths, options)).run();
 }

@@ -1,3 +1,5 @@
+import { setFlag } from './utils';
+
 export const command = '$0 <files...>';
 export const describe = 'Run Tests';
 
@@ -20,6 +22,11 @@ const options = {
     tmpdir: {
         default: '.tmp',
         describe: 'temporary directory'
+    },
+    'fail-fast': {
+        type: 'boolean',
+        default: true,
+        describe: 'exit on first fail'
     }
 };
 
@@ -31,6 +38,7 @@ export function builder (yargs) {
 
 export async function handler ({ files, ...options }) {
     try {
+        setFlag('TUPE_FAIL_FAST', options['fail-fast']);
         await require('../agent').run(files, options);
     } catch (err) {
         console.error(err);

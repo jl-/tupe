@@ -4,14 +4,18 @@ export const describe = 'Run Tests';
 const args = {
     files: {
         type: 'string',
-        describe: 'test files'
+        describe: 'path or glob for test files'
     }
 };
 
 const options = {
     watch: {
-        describe: 'watch mode',
-        default: false
+        default: false,
+        describe: 'watch mode'
+    },
+    port: {
+        default: 1234,
+        describe: 'server port'
     },
     tmpdir: {
         default: '.tmp',
@@ -29,7 +33,7 @@ export async function handler ({ files, ...options }) {
     try {
         await require('../agent').run(files, options);
     } catch (err) {
-        console.log(err);
+        console.error(err);
         process.exit(0);
     }
 }

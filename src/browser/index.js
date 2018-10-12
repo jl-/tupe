@@ -21,10 +21,26 @@ export default class Browser extends EventEmitter {
 
     }
 
-    async newPage (data) {
+    async newPage () {
         const $remote = await this.launch();
         const page = await $remote.newPage();
-
+        page.on('console', msg => this.parseConsole(msg));
         return page;
+    }
+
+    async runSuite (suite) {
+        const page = await this.newPage();
+        await page.goto(suite.url);
+    }
+
+    async parseConsole (msg) {
+        for (const arg of msg.args()) {
+            const { type, subtype } = arg._remoteObject;
+            if (type === 'function' || subtype === 'regexp') {
+                console[msg.type()](arg._remoteObject.description);
+            } else {
+                console[msg.type()](await arg.jsonValue());
+            }
+        }
     }
 }

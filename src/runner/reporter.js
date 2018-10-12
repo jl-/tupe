@@ -1,12 +1,30 @@
 export default function bindReporter (runner) {
+    // logger
     const log = console.log.bind(console);
     const error = console.error.bind(console);
 
-    runner.on('case:passed', global.onCasePassed || global.onCaseFinished || log);
-    runner.on('case:failed', global.onCaseFailed || global.onCaseFinished || error);
-    runner.on('hook:passed', global.onHookPassed || global.onHookFinished || log);
-    runner.on('hook:failed', global.onHookFailed || global.onHookFinished || error);
-    runner.on('done', () => (global.onPageFinished || log)(global.__coverage__));
+    // before hook
+    runner.on('beforeHook:passed', global.onSpecFinished || log);
+    runner.on('beforeHook:failed', global.onSpecFinished || error);
+
+    // beforeEach hook
+    runner.on('beforeEachHook:passed', global.onSpecFinished || log);
+    runner.on('beforeEachHook:failed', global.onSpecFinished || error);
+
+    // each case
+    runner.on('case:passed', global.onSpecFinished || log);
+    runner.on('case:failed', global.onSpecFinished || error);
+
+    // afterEach hook
+    runner.on('afterEachHook:passed', global.onSpecFinished || log);
+    runner.on('afterEachHook:failed', global.onSpecFinished || error);
+
+    // after hook
+    runner.on('afterHook:passed', global.onSpecFinished || log);
+    runner.on('afterHook:failed', global.onSpecFinished || error);
+
+    // finished
+    runner.on('done', passed => (global.onSuiteFinished || log)(passed, global.__coverage__));
 
     return runner;
 }

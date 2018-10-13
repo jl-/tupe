@@ -1,5 +1,3 @@
-export function setFlag (name, positive) {
-    if (positive) {
-        process.env[name] = 1;
-    }
+export function env (name, positive) {
+    process.env[name] = positive || '';
 }

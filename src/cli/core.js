@@ -1,4 +1,4 @@
-import { setFlag } from './utils';
+import { env } from './utils';
 
 export const command = '$0 <files...>';
 export const describe = 'Run Tests';
@@ -38,7 +38,7 @@ export function builder (yargs) {
 
 export async function handler ({ files, ...options }) {
     try {
-        setFlag('TUPE_FAIL_FAST', options['fail-fast']);
+        env('TUPE_FAIL_FAST', options['fail-fast']);
         await require('../agent').run(files, options);
     } catch (err) {
         console.error(err);

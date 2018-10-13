@@ -8,6 +8,7 @@ export default class Runner extends EventEmitter {
 
         this.spec = null;
         this.specs = new Map();
+        this.hasFailure = false;
 
         this.cases = [];
         this.beforeHooks = [];
@@ -47,11 +48,14 @@ export default class Runner extends EventEmitter {
     }
 
     async run () {
+        this.hasFailure = false;
         const runSpec = async (spec) => {
             try {
+                this.emit(`${spec.type}:ready`, spec);
                 await (this.spec = spec).run();
                 this.emit(`${this.spec.type}:passed`, this.spec);
             } catch (e) {
+                this.hasFailure = true;
                 this.emit(`${this.spec.type}:failed`, this.spec);
                 if (this.options.failFast) throw e;
             }
@@ -64,6 +68,7 @@ export default class Runner extends EventEmitter {
         };
 
         try {
+            this.emit('suite:ready', [...this.specs.values()]);
             await runHooks(this.beforeHooks);
             for (const spec of this.cases) {
                 await runHooks(this.beforeEachHooks);
@@ -71,9 +76,8 @@ export default class Runner extends EventEmitter {
                 await runHooks(this.afterEachHooks);
             }
             await runHooks(this.afterHooks);
-            this.emit('done', [...this.specs.values()], true);
-        } catch (err) {
-            this.emit('done', [...this.specs.values()], false);
+        } finally {
+            this.emit('suite:finished', !this.hasFailure);
         }
     }
 

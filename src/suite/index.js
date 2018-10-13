@@ -2,33 +2,48 @@ import path from 'path';
 import Spec from '../spec';
 import fs from '../utils/fs';
 import hash from 'string-hash';
+import Metrics from '../utils/metrics';
 import * as status from '../meta/status';
 
 export default class Suite {
-    constructor (fpath, tmpdir) {
-        this.fpath = fpath;
+    constructor (srcpath, tmpdir) {
+        this.specs = new Map();
         this.status = status.INIT;
+        this.metrics = new Metrics();
 
-        tmpdir = path.join(tmpdir, path.basename(tmpdir));
-        this.name = `tmp-${hash(fpath)}.html`;
-        this.path = path.resolve(tmpdir, this.name);
-
-        fs.outputFileSync(this.path, genHtml(this.path, fpath));
+        this.srcpath = srcpath;
+        this.name = `tmp-${hash(srcpath)}.html`;
+        this.path = path.resolve(tmpdir, path.basename(tmpdir), this.name);
+        fs.outputFileSync(this.path, genHtml(this.path, this.srcpath));
     }
 
-    forServer (port, host = 'localhost') {
+    get finished () {
+        return this.status === status.FAILED || this.status === status.PASSED;
+    }
+
+    start (port, host = 'localhost') {
         this.url = `http://${host}:${port}/${this.name}`;
+        this.metrics.record(this.status = status.PENDING);
     }
 
-    addSpec (data) {
-        const spec = Spec.derive(data);
+    record (specData) {
+        const spec = Spec.derive(specData);
+        this.specs.set(spec.key, spec);
         return spec;
+    }
+
+    stop (specs, passed, cov) {
+        for (const data of specs) {
+            const spec = this.record(data);
+        }
+        this.metrics.end(this.status);
+        this.status = passed ? status.PASSED : status.FAILED;
     }
 }
 
-function genHtml (destPath, entryPath) {
-    const dir = path.dirname(destPath);
-    const relpath = path.relative(dir, entryPath);
+function genHtml (fpath, srcpath) {
+    const dir = path.dirname(fpath);
+    const relpath = path.relative(dir, srcpath);
 
     return `
         <html>

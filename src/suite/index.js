@@ -25,21 +25,30 @@ export default class Suite {
         return this.status === status.FAILED;
     }
 
-    start (port, host = 'localhost') {
+    prepare (port, host = 'localhost') {
         this.url = `http://${host}:${port}/${this.name}`;
         this.metrics.record(this.status = status.PENDING);
     }
 
-    record (specData) {
-        const spec = Spec.derive(specData);
+    addSpec (data) {
+        const spec = Spec.derive(data);
         this.specs.set(spec.key, spec);
         return spec;
     }
 
-    stop (specs, passed, cov) {
-        for (const data of specs) {
-            const spec = this.record(data);
-        }
+    onSpecReady (data) {
+        return this.addSpec(data);
+    }
+
+    onSpecFinished (data) {
+        return this.addSpec(data);
+    }
+
+    start (specs) {
+        return specs.map(data => this.addSpec(data));
+    }
+
+    stop (passed, cov) {
         this.metrics.end(this.status);
         this.status = passed ? status.PASSED : status.FAILED;
     }

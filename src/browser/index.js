@@ -18,7 +18,8 @@ export default class Browser extends EventEmitter {
     }
 
     async exit () {
-
+        await this.$remote.close();
+        this.$remote = null;
     }
 
     async newPage () {
@@ -34,8 +35,9 @@ export default class Browser extends EventEmitter {
             this.emit('specFinished', suite, spec);
         });
 
-        page.exposeFunction('onSuiteFinished', (passed, cov) => {
-            this.emit('suiteFinished', suite, passed, cov);
+        page.exposeFunction('onSuiteFinished', async (specs, passed, cov) => {
+            await page.close();
+            this.emit('suiteFinished', suite, specs, passed, cov);
         });
 
         await page.goto(suite.url);
@@ -47,7 +49,9 @@ export default class Browser extends EventEmitter {
             if (type === 'function' || subtype === 'regexp') {
                 console[msg.type()](arg._remoteObject.description);
             } else {
-                console[msg.type()](await arg.jsonValue());
+                try {
+                    console[msg.type()](await arg.jsonValue());
+                } catch (e) {}
             }
         }
     }

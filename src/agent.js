@@ -35,6 +35,9 @@ export default class Agent {
         this.browser.removeAllListeners();
 
         this.server.on('bundled', ::this.digest);
+
+        this.browser.on('suiteReady', ::this.onSuiteReady);
+        this.browser.on('specReady', ::this.onSpecReady);
         this.browser.on('specFinished', ::this.onSpecFinished);
         this.browser.on('suiteFinished', ::this.onSuiteFinished);
 
@@ -47,25 +50,34 @@ export default class Agent {
         const server = this.server;
         this.metrics.record(this.status = status.PENDING);
         for (const suite of this.suites.values()) {
-            suite.start(server.port, server.host);
+            suite.prepare(server.port, server.host);
             await this.browser.runSuite(suite);
         }
     }
 
-    async onSpecFinished (suite, spec) {
-        this.reporter.receive(suite, suite.record(spec));
+    onSuiteReady (suite, specs) {
+        suite.start(specs);
     }
 
-    async onSuiteFinished (suite, specs, passed, cov) {
-        suite.stop(specs, passed, cov);
+    onSpecReady (suite, spec) {
+        this.reporter.onSpecReady(suite, suite.onSpecReady(spec));
+    }
+
+    onSpecFinished (suite, spec) {
+        this.reporter.onSpecFinished(suite, suite.onSpecFinished(spec));
+    }
+
+    async onSuiteFinished (suite, passed, cov) {
+        suite.stop(passed, cov);
+        this.reporter.onSuiteFinished(suite);
+
         const suites = [...this.suites.values()];
         if (suites.every(s => s.passed || s.failed)) {
-            this.status = suites.every(s => s.passed) ?
-                status.PASSED : status.FAILED;
-
             const metric = this.metrics.end(this.status);
             this.reporter.sumup(suites, metric);
 
+            this.status = suites.every(s => s.passed) ?
+                status.PASSED : status.FAILED;
             if (!this.server.watch) {
                 await this.stop();
             }

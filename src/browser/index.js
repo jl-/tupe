@@ -31,13 +31,22 @@ export default class Browser extends EventEmitter {
 
     async runSuite (suite) {
         const page = await this.newPage();
+
+        page.exposeFunction('onSuiteReady', specs => {
+            this.emit('suiteReady', suite, specs);
+        });
+
+        page.exposeFunction('onSpecReady', spec => {
+            this.emit('specReady', suite, spec);
+        });
+
         page.exposeFunction('onSpecFinished', spec => {
             this.emit('specFinished', suite, spec);
         });
 
-        page.exposeFunction('onSuiteFinished', async (specs, passed, cov) => {
+        page.exposeFunction('onSuiteFinished', async (passed, cov) => {
             await page.close();
-            this.emit('suiteFinished', suite, specs, passed, cov);
+            this.emit('suiteFinished', suite, passed, cov);
         });
 
         await page.goto(suite.url);

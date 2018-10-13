@@ -33,8 +33,6 @@ export default class Agent {
         this.server.removeAllListeners();
         this.browser.removeAllListeners();
 
-        this.metrics.record(status.PENDING);
-
         this.server.on('bundled', ::this.digest);
         this.browser.on('specFinished', ::this.onSpecFinished);
         this.browser.on('suiteFinished', ::this.onSuiteFinished);
@@ -46,18 +44,28 @@ export default class Agent {
 
     async digest () {
         const server = this.server;
+        this.metrics.record(status.PENDING);
         for (const suite of this.suites.values()) {
-            suite.forServer(server.port, server.host);
+            suite.start(server.port, server.host);
             await this.browser.runSuite(suite);
         }
     }
 
     async onSpecFinished (suite, spec) {
-        this.reporter.receive(suite, suite.addSpec(spec));
+        this.reporter.receive(suite, suite.record(spec));
     }
 
-    async onSuiteFinished (suite, passed, cov) {
-        //
+    async onSuiteFinished (suite, specs, passed, cov) {
+        suite.stop(specs, passed, cov);
+        if ([...this.suites.values()].every(
+            suite => suite.finished
+        )) {
+            const metric = this.metrics.end(status.PENDING);
+            this.reporter.sumup(this.suites, metric);
+            if (!this.server.watch) {
+                await this.stop();
+            }
+        }
     }
 
     async stop () {

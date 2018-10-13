@@ -8,6 +8,11 @@
             {
               "regenerator": true
             }
-        ]
+        ],
+        ["babel-plugin-espower", {
+            "patterns": [
+                "t(value, [message])"
+            ]
+        }]
     ]
 }

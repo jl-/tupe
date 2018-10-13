@@ -7,6 +7,8 @@ export default class Runner extends EventEmitter {
         this.options = options;
 
         this.spec = null;
+        this.specs = new Map();
+
         this.cases = [];
         this.beforeHooks = [];
         this.afterHooks = [];
@@ -17,24 +19,31 @@ export default class Runner extends EventEmitter {
         window.onunhandledrejection = e => { throw e };
     }
 
+    addSpec (cate, title, fn, type) {
+        const spec = new Spec(title, fn, type);
+        this.specs.set(spec.key, spec);
+        cate.push(spec);
+        return spec;
+    }
+
     addCase (title, fn) {
-        this.cases.push(new Spec(title, fn, 'case'));
+        return this.addSpec(this.cases, title, fn, 'case');
     }
 
     addBeforeHook (title, fn) {
-        this.beforeHooks.push(new Spec(title, fn, 'beforeHook'));
+        return this.addSpec(this.beforeHooks, title, fn, 'beforeHook');
     }
 
     addAfterHook (title, fn) {
-        this.afterHooks.push(new Spec(title, fn, 'afterHook'));
+        return this.addSpec(this.afterHooks, title, fn, 'afterHook');
     }
 
     addBeforeEachHook (title, fn) {
-        this.beforeEachHooks.push(new Spec(title, fn, 'beforeEachHook'));
+        return this.addSpec(this.beforeEachHooks, title, fn, 'beforeEachHook');
     }
 
     addAfterEachHook (title, fn) {
-        this.afterEachHooks.push(new Spec(title, fn, 'afterEachHook'));
+        return this.addSpec(this.afterEachHooks, title, fn, 'afterEachHook');
     }
 
     async run () {
@@ -62,14 +71,13 @@ export default class Runner extends EventEmitter {
                 await runHooks(this.afterEachHooks);
             }
             await runHooks(this.afterHooks);
-            this.emit('done', true);
+            this.emit('done', [...this.specs.values()], true);
         } catch (err) {
-            this.emit('done', false);
+            this.emit('done', [...this.specs.values()], false);
         }
     }
 
     uncaught (err) {
-        // this.spec.stop(err || true);
         return true;
     }
 }

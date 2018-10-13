@@ -24,7 +24,7 @@ export default function bindReporter (runner) {
     runner.on('afterHook:failed', global.onSpecFinished || error);
 
     // finished
-    runner.on('done', passed => (global.onSuiteFinished || log)(passed, global.__coverage__));
+    runner.on('done', (specs, passed) => (global.onSuiteFinished || log)(specs, passed, global.__coverage__));
 
     return runner;
 }

@@ -1,11 +1,13 @@
-import assert from 'assert';
 import now from '../utils/now';
+import assert from '../assert';
+import { uniq } from '../utils/string';
 import * as status from '../meta/status';
 
 export default class Spec {
     constructor (title, fn, type) {
+        this.key = uniq();
         this.type = type;
-        this.error = '';
+        this.error = null;
         this.status = status.INIT;
         this.fn = typeof fn === 'function' ? fn : title;
         this.title = typeof title === 'string' ? title : '';

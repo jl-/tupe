@@ -17,8 +17,12 @@ export default class Suite {
         fs.outputFileSync(this.path, genHtml(this.path, this.srcpath));
     }
 
-    get finished () {
-        return this.status === status.FAILED || this.status === status.PASSED;
+    get passed () {
+        return this.status === status.PASSED;
+    }
+
+    get failed () {
+        return this.status === status.FAILED;
     }
 
     start (port, host = 'localhost') {

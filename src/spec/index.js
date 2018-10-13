@@ -8,6 +8,7 @@ export default class Spec {
         this.key = uniq();
         this.type = type;
         this.error = null;
+        this.runtime = 0;
         this.status = status.INIT;
         this.fn = typeof fn === 'function' ? fn : title;
         this.title = typeof title === 'string' ? title : '';
@@ -30,7 +31,7 @@ export default class Spec {
     }
 
     async run () {
-        this.startedAt = now();
+        this.runtime = now();
         this.status = status.PENDING;
 
         const stop = err => this.stop(err);
@@ -54,16 +55,10 @@ export default class Spec {
     }
 
     stop (err) {
-        this.finishedAt = now();
+        this.runtime = now() - this.runtime;
         this.status = err ? status.FAILED : status.PASSED;
-
-        if (this.passed) {
-            this.resolve();
-        } else {
-            this.error = err.message ||
-                (typeof err === 'string' && err) ||
-                'failed wiht no or falsy reason';
-            this.reject(this.error);
-        }
+        return this.passed ? this.resolve() : this.reject(
+            this.error = err !== true ? err : 'Failed with no falsy reason.'
+        );
     }
 }

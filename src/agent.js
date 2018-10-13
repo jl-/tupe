@@ -10,6 +10,7 @@ export default class Agent {
     constructor (files, options = {}) {
         this.options = options;
         this.suites = new Map();
+        this.status = status.INIT;
 
         this.browser = new Browser();
         this.metrics = new Metrics();
@@ -44,7 +45,7 @@ export default class Agent {
 
     async digest () {
         const server = this.server;
-        this.metrics.record(status.PENDING);
+        this.metrics.record(this.status = status.PENDING);
         for (const suite of this.suites.values()) {
             suite.start(server.port, server.host);
             await this.browser.runSuite(suite);
@@ -57,11 +58,14 @@ export default class Agent {
 
     async onSuiteFinished (suite, specs, passed, cov) {
         suite.stop(specs, passed, cov);
-        if ([...this.suites.values()].every(
-            suite => suite.finished
-        )) {
-            const metric = this.metrics.end(status.PENDING);
-            this.reporter.sumup(this.suites, metric);
+        const suites = [...this.suites.values()];
+        if (suites.every(s => s.passed || s.failed)) {
+            this.status = suites.every(s => s.passed) ?
+                status.PASSED : status.FAILED;
+
+            const metric = this.metrics.end(this.status);
+            this.reporter.sumup(suites, metric);
+
             if (!this.server.watch) {
                 await this.stop();
             }

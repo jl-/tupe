@@ -26,6 +26,7 @@ export default class Suite {
     }
 
     prepare (port, host = 'localhost') {
+        this.specs.clear();
         this.url = `http://${host}:${port}/${this.name}`;
         this.metrics.record(this.status = status.PENDING);
     }

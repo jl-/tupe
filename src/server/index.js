@@ -20,8 +20,9 @@ export default class Server extends EventEmitter {
         const port = this.port;
         this.port = await getPortPromise({ port });
 
+        const watch = this.watch;
         this.bundler = new Bundler(suitePaths, {
-            outDir: this.tmpdir, hmr: this.watch
+            outDir: this.tmpdir, watch, hmr: watch, logLevel: 1
         });
         this.bundler.on('bundled', b => this.emit('bundled', b));
 

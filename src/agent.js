@@ -46,8 +46,9 @@ export default class Agent {
         return this.server.start(this.suites);
     }
 
-    async digest () {
+    async digest (bundle) {
         const server = this.server;
+        this.reporter.prepare();
         this.metrics.record(this.status = status.PENDING);
         for (const suite of this.suites.values()) {
             suite.prepare(server.port, server.host);
@@ -56,7 +57,7 @@ export default class Agent {
     }
 
     onSuiteReady (suite, specs) {
-        suite.start(specs);
+        this.reporter.onSuiteReady(suite, suite.start(specs));
     }
 
     onSpecReady (suite, spec) {

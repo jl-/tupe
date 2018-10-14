@@ -1,10 +1,7 @@
 import empower from 'power-assert';
 
-const assertion = {};
 const output = {
-    renderers: [
-
-    ]
+    renderers: []
 };
 
-export default empower.customize({ assertion, output });
+export default empower.customize({ output });

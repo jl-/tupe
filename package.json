@@ -8,7 +8,8 @@
   "license": "MIT",
   "scripts": {
     "build": "babel src -d lib --copy-files",
-    "example": "./bin/tupe"
+    "example": "./bin/tupe",
+    "test": "cross-env NODE_ENV=test nyc --report-dir=test/coverage ava"
   },
   "dependencies": {
     "@babel/runtime": "^7.1.2",
@@ -36,6 +37,25 @@
     "@babel/plugin-proposal-class-properties": "^7.1.0",
     "@babel/plugin-proposal-function-bind": "^7.0.0",
     "@babel/plugin-transform-runtime": "^7.1.0",
-    "@babel/preset-env": "^7.1.0"
+    "@babel/preset-env": "^7.1.0",
+    "@babel/register": "^7.0.0",
+    "ava": "^1.0.0-beta.8",
+    "cross-env": "^5.2.0",
+    "nyc": "^13.1.0",
+    "testdouble": "^3.8.2"
+  },
+  "ava": {
+    "files": [
+      "test/**/*.js"
+    ],
+    "require": [
+      "@babel/register"
+    ],
+    "verbose": true,
+    "babel": {
+      "testOptions": {
+        "babelrc": false
+      }
+    }
   }
 }

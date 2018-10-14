@@ -11,7 +11,17 @@
         ],
         ["babel-plugin-espower", {
             "patterns": [
-                "t(value, [message])"
+                "t(value, [message])",
+                "t.ok(value, [message])",
+                "t.equal(actual, expected, [message])",
+                "t.notEqual(actual, expected, [message])",
+                "t.strictEqual(actual, expected, [message])",
+                "t.notStrictEqual(actual, expected, [message])",
+                "t.deepEqual(actual, expected, [message])",
+                "t.notDeepEqual(actual, expected, [message])",
+                "t.deepStrictEqual(actual, expected, [message])",
+                "t.notDeepStrictEqual(actual, expected, [message])",
+                "t.throws(block, [error], [message])"
             ]
         }]
     ]

@@ -1,11 +1,18 @@
 import path from 'path';
 import figures from 'figures';
 import string from '../utils/string';
-import ErrRenderer from './renderer';
+import AssertionRenderer from 'power-assert-renderer-assertion';
+import DiagramRenderer from 'power-assert-renderer-diagram';
 import createErrFormatter from 'power-assert-context-formatter';
+import { FileRenderer, ComparisonRenderer } from './renderers';
 
 export const formatError = createErrFormatter({
-    renderers: [ErrRenderer]
+    renderers: [
+        FileRenderer,
+        AssertionRenderer,
+        DiagramRenderer,
+        ComparisonRenderer
+    ]
 });
 
 export function crumbTitle (filepath, title) {

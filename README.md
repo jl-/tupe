@@ -5,7 +5,7 @@
 [![npm version](https://badgen.net/npm/v/tupe)](https://www.npmjs.com/package/tupe)
 [![npm downloads](https://badgen.net/npm/dm/tupe)](https://www.npmjs.com/package/tupe)
 
-##### [API](#api) | [Congiguration](#configuration) | [FAQ](#faq)
+##### [API](#api) | [Congiguration](#configuration) | [Examples](#examples) | [FAQ](#faq)
 
 > A generic unit-testing framework for front-end.➰ 
 
@@ -18,28 +18,40 @@
 ## Motivations
 
 
-## API
+## Examples
 
 ```javascript
 import test from 'tupe';
 
-test('Hello Tupe', t => {
+test('hello tupe!', t => {
+    const who = { name: 'Tupe!' };
+    t(who.name === 'Tupe!');
+});
+
+test('async waiting...', async t => {
+    const answer = true;
+    await new Promise(r => setTimeout(r, 1500));
+    t(answer === true);
+});
+
+test('misspell my name ?', t => {
     const who = { name: 'Hello Tupe!' };
     t(who.name === 'Hel' + 'o Tupe~');
 });
 
-test('Is Unit-Testing Awesome?', async t => {
-    const answer = true;
-    await new Promise(r => setTimeout(r, 1000));
-    t(answer === true);
+test('use callback ?', (t, done) => {
+    setTimeout(() => {
+        t('dump' === 'dump');
+        done();
+    }, 1500);
 });
 
-test('Unit-Testing Runners', t => {
+test('array assert', t => {
     const runners = ['AVA', 'Tupe'];
     t(runners.indexOf('Tupe') === 0);
 });
 ```
 
-<img width="712" alt="screen shot 2018-10-16 at 12 37 27 am" src="https://user-images.githubusercontent.com/6291986/46964846-c5380c00-d0db-11e8-8a77-d85d45565188.png">
+![render1539627393699](https://user-images.githubusercontent.com/6291986/46970445-ac375700-d0eb-11e8-8125-8be313035aa0.gif)
 
 ## FAQ

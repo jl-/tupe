@@ -24,28 +24,28 @@ export class FileRenderer extends BaseRenderer {
 export class ComparisonRenderer extends BaseComparisionRenderer {
     showExpectedAndActual (pair) {
         this.write('');
-        this.write('[' + typeName(pair.right.value) + '] ' + pair.right.code);
+        const tagType = v => string.dim('[') + typeName(v) + string.dim(']');
+        this.write(tagType(pair.right.value) + ' ' + pair.right.code);
         this.write(string.dim('=> ') + this.stringify(pair.right.value));
-        this.write('[' + typeName(pair.left.value)  + '] ' + pair.left.code);
+        this.write(tagType(pair.left.value) + ' ' + pair.left.code);
         this.write(string.dim('=> ') + this.stringify(pair.left.value));
     }
 
     showStringDiff ({ left, right }) {
         this.write('');
-        this.write(string.error('--- [string] ') + right.code);
-        this.write(string.green('+++ [string] ') + left.code);
+        this.write(string.error('--- [string] ') + left.code);
+        this.write(string.green('+++ [string] ') + right.code);
 
         const diffs = dmp.diff_main(right.value, left.value);
         dmp.diff_cleanupSemantic(diffs);
         const patches = dmp.patch_make(right.value, diffs);
         for (const patch of patches) {
-            this.write(decorateDiffPatch(patch));
+            this.write(stringifyDiffPatch(patch));
         }
     }
 }
 
-function decorateDiffPatch (patch) {
-    const EQUAL  = ' ';
+function stringifyDiffPatch (patch) {
     const DELETE = string.error('-');
     const INSERT = string.green('+');
 
@@ -58,11 +58,18 @@ function decorateDiffPatch (patch) {
     const header = `@@ ${DELETE}` + coordsOf(patch.start1, patch.length1) +
         ` ${INSERT}` + coordsOf(patch.start2, patch.length2) + ' @@';
 
-    const lines = patch.diffs.map(([op, text]) => {
-        if (op === 0) return EQUAL + ' ' + text;
-        if (op === 1) return INSERT + ' ' + string.bgGreen(text);
-        return DELETE + ' ' + string.bgRed(text);
-    });
+    let originLine = `${DELETE} `;
+    let patchLine = `${INSERT} `;
+    for (const [op, text] of patch.diffs) {
+        if (op === 0) {
+            originLine += text;
+            patchLine += text;
+        } else if (op === 1) {
+            originLine += string.bgRed(text);
+        } else if (op === -1) {
+            patchLine += string.bgGreen(text);
+        }
+    }
 
-    return [header].concat(lines).join('\n').replace(/%20/g, ' ');
+    return [header, originLine, patchLine].join('\n').replace(/%20/g, ' ');
 }

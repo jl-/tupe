@@ -23,20 +23,23 @@
 ```javascript
 import test from 'tupe';
 
-// before, beforeEach, ...
-
-test('some test', t => {
+test('Hello Tupe', t => {
+    const who = { name: 'Hello Tupe!' };
+    t(who.name === 'Hel' + 'o Tupe~');
 });
 
-test('some test', async (t) => {
+test('Is Unit-Testing Awesome?', async t => {
+    const answer = true;
+    await new Promise(r => setTimeout(r, 1000));
+    t(answer === true);
 });
 
-test('some test', (t, cb) => {
-});
-
-test('some test', t => {
-    // return new Promise(...);
+test('Unit-Testing Runners', t => {
+    const runners = ['AVA', 'Tupe'];
+    t(runners.indexOf('Tupe') === 0);
 });
 ```
+
+<img width="712" alt="screen shot 2018-10-16 at 12 37 27 am" src="https://user-images.githubusercontent.com/6291986/46964846-c5380c00-d0db-11e8-8a77-d85d45565188.png">
 
 ## FAQ

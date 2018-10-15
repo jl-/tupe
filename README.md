@@ -5,10 +5,19 @@
 [![npm version](https://badgen.net/npm/v/tupe)](https://www.npmjs.com/package/tupe)
 [![npm downloads](https://badgen.net/npm/dm/tupe)](https://www.npmjs.com/package/tupe)
 
-###### [API](/) | [FAQ](/)
+##### [API](#api) | [Congiguration](#configuration) | [FAQ](#faq)
 
-> A decent runner for front-end Unit-Testing.
+> A generic unit-testing framework for front-end.➰ 
 
+## Features
+- [AVA](https://github.com/avajs/ava) like api
+- Isolation
+- Concurrency
+
+## Motivations
+
+
+## API
 
 ```javascript
 import test from 'tupe';
@@ -28,3 +37,5 @@ test('some test', t => {
     // return new Promise(...);
 });
 ```
+
+## FAQ

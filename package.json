@@ -2,7 +2,7 @@
   "name": "tupe",
   "version": "0.0.0-alpha.0",
   "description": "Generic unit-testing framework for front-end",
-  "main": "index.js",
+  "main": "lib/index.js",
   "bin": "bin/tupe",
   "repository": "https://github.com/jl-/tupe.git",
   "author": "z.cius <zr.cius@gmail.com>",

@@ -1,19 +1,22 @@
-import ora from 'ora';
 import figures from 'figures';
 import string from '../utils/string';
-import logger from '../utils/logger';
+import { isFailed } from '../meta/status';
 import { formatError, crumbTitle } from './formatter';
 
 export default class Reporter {
-    pending = ora();
-    pendings = new Map();
+    constructor (logger) {
+        this.logger = logger;
+        this.states = new Map();
+        this.pendings = new Map();
+        this.failures = new Map();
+    }
 
     prepare () {
-        this.pending.stop();
+        this.states.clear();
         this.pendings.clear();
-        this.totalSpecCount = 0;
-        this.passedSpecCount = 0;
-        this.failedSpecs = [];
+        this.failures.clear();
+        this.totalCaseCount = 0;
+        this.passedCaseCount = 0;
     }
 
     get lastPending () {
@@ -23,57 +26,87 @@ export default class Reporter {
 
     get statusText () {
         return [
-            string.cyan(`Total: ${this.totalSpecCount}`),
-            string.green(`Passed: ${this.passedSpecCount}`),
-            string.error(`Failed: ${this.failedSpecs.length}`)
+            string.cyan(`Total: ${this.totalCaseCount}`),
+            string.green(`Passed: ${this.passedCaseCount}`),
+            string.error(`Failed: ${this.failures.size}`)
         ].join(string.dim(',  '));
     }
 
-    onSuiteReady (suite, specs) {
-        this.totalSpecCount += specs.length;
+    onSuiteReady (suite, cases) {
+        this.totalCaseCount += cases.length;
     }
 
-    onSpecReady (suite, spec) {
-        const text = crumbTitle(suite.srcpath, spec.title);
-        this.pendings.set(spec.key, text);
-        this.showPendingStatus(text);
-    }
-
-    onSpecFinished (suite, spec) {
-        this.pending.stop();
-        const text = this.pendings.get(spec.key);
-        if (spec.failed) {
-            logger.error(text);
-            this.failedSpecs.push(spec);
-        } else {
-            logger.success(text);
-            this.passedSpecCount += 1;
+    onHookFinished (suite, hookState, caseState) {
+        if (!caseState && isFailed(hookState.status)) {
+            this.failures.set(hookState.key, { hookState });
         }
-        this.pendings.delete(spec.key);
-        this.showPendingStatus();
+    }
+
+    onCaseReady (suite, caseState) {
+        const text = crumbTitle(suite.srcpath, caseState.title);
+        this.pendings.set(caseState.key, text);
+        this.showPendingText(this.lastPending);
+    }
+
+    onCaseFinished (suite, caseState, hookState) {
+        this.logger.pending(false);
+        const text = this.pendings.get(caseState.key);
+
+        if (isFailed(caseState.status)) {
+            this.logger.error(text);
+            this.failures.set(caseState.key, { caseState, hookState });
+        } else if (hookState && isFailed(hookState.status)) {
+            const title = hookState.type + hookState.title + ' Failed For';
+            this.logger.error(title + text);
+            this.failures.set(caseState.key, { caseState, hookState });
+        } else {
+            this.passedCaseCount += 1;
+            this.logger.success(text);
+        }
+        this.pendings.delete(caseState.key);
+        this.showPendingText(this.lastPending);
     }
 
     onSuiteFinished (suite) {
-        //
+
     }
 
-    showPendingStatus (text = this.lastPending) {
+    showPendingText (text = this.lastPending) {
         if (!text) return;
         const indicator = string.dim(figures.pointerSmall.repeat(3));
-        this.pending.start(` ${text}` + `\n\n${indicator} ` + this.statusText);
+        this.logger.pending(` ${text}` + `\n\n${indicator} ` + this.statusText);
     }
 
     sumup (suites, metric) {
-        if (this.failedSpecs.length) {
-            const title = string.error(`${this.failedSpecs.length} Failed.`);
-            logger.title(string.white.bgRed(` Failures `) + `  ${title}`);
-            for (const spec of this.failedSpecs) {
-                logger.writeln(string.error(figures.cross) + ' ' + string.bold(spec.title));
-                logger.log(formatError(spec.error.powerAssertContext));
-            }
-        }
+        if (this.failures.size === 0) {
+            this.logger.success(this.statusText);
+        } else {
+            const failures = [...this.failures.values()];
+            const isHook = f => f.hookState && isFailed(f.hookState.status);
 
-        const result = this.failedSpecs.length ? 'error' : 'success';
-        logger.scope('FINISHED')[result](this.statusText);
+            const failedHookCount = failures.filter(isHook).length;
+            const failedCaseCount = failures.length - failedHookCount;
+
+            const title = [
+                failedHookCount > 0 ? `${failedHookCount} hooks` : '',
+                failedCaseCount > 0 ? `${failedCaseCount} cases` : ''
+            ].filter(Boolean).join(string.dim(',  '));
+
+            const logStack = state => {
+                const error = state.error;
+                this.logger.writeln(formatError(error.powerAssertContext));
+            };
+
+            this.logger.title(string.white.bgRed(` Failures `) + `  ${string.red(title)}`);
+            for (const { caseState, hookState } of failures) {
+                this.logger.error(string.bold(caseState.title));
+                if (caseState && isFailed(caseState.status)) {
+                    logStack(caseState);
+                } else {
+                    logStack(hookState);
+                }
+            }
+            this.logger.error(this.statusText);
+        }
     }
 }

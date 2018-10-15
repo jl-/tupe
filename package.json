@@ -1,8 +1,9 @@
 {
   "name": "tupe",
-  "version": "0.0.0",
-  "description": "unit testing library",
+  "version": "0.0.0-alpha.0",
+  "description": "Generic unit-testing framework for front-end",
   "main": "index.js",
+  "bin": "bin/tupe",
   "repository": "https://github.com/jl-/tupe.git",
   "author": "z.cius <zr.cius@gmail.com>",
   "license": "MIT",
@@ -11,6 +12,20 @@
     "example": "./bin/tupe",
     "test": "cross-env NODE_ENV=test nyc ava"
   },
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "keywords": [
+    "unit",
+    "test",
+    "testing",
+    "tupe",
+    "runner",
+    "assert",
+    "tdd",
+    "puppeteer"
+  ],
   "dependencies": {
     "@babel/runtime": "^7.1.2",
     "babel-preset-power-assert": "^3.0.0",

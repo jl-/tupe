@@ -11,8 +11,9 @@
 
 ## Features
 - [AVA](https://github.com/avajs/ava) like api
-- Isolation
-- Concurrency
+- isolation
+- concurrency
+- power-assert support
 
 ## Motivations
 

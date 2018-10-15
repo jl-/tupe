@@ -3,9 +3,10 @@ import EventEmitter from 'events';
 import mergeOptions from './options';
 
 export default class Browser extends EventEmitter {
-    constructor (options = {}) {
+    constructor (logger, options = {}) {
         super();
         this.$remote = null;
+        this.logger = logger;
         this.options = mergeOptions(options);
     }
 
@@ -25,23 +26,27 @@ export default class Browser extends EventEmitter {
     async newPage () {
         const $remote = await this.launch();
         const page = await $remote.newPage();
-        page.on('console', msg => this.parseConsole(msg));
+        page.on('console', data => this.pipeLog(data));
         return page;
     }
 
     async runSuite (suite) {
         const page = await this.newPage();
 
-        page.exposeFunction('onSuiteReady', specs => {
-            this.emit('suiteReady', suite, specs);
+        page.exposeFunction('onSuiteReady', cases => {
+            this.emit('suiteReady', suite, cases);
         });
 
-        page.exposeFunction('onSpecReady', spec => {
-            this.emit('specReady', suite, spec);
+        page.exposeFunction('onHookFinished', (hookState, caseState) => {
+            this.emit('hookFinished', suite, hookState, caseState);
         });
 
-        page.exposeFunction('onSpecFinished', spec => {
-            this.emit('specFinished', suite, spec);
+        page.exposeFunction('onCaseReady', caseState => {
+            this.emit('caseReady', suite, caseState);
+        });
+
+        page.exposeFunction('onCaseFinished', (caseState, hookState) => {
+            this.emit('caseFinished', suite, caseState, hookState);
         });
 
         page.exposeFunction('onSuiteFinished', async (passed, cov) => {
@@ -52,14 +57,14 @@ export default class Browser extends EventEmitter {
         await page.goto(suite.url);
     }
 
-    async parseConsole (msg) {
-        for (const arg of msg.args()) {
+    async pipeLog (data) {
+        for (const arg of data.args()) {
             const { type, subtype } = arg._remoteObject;
             if (type === 'function' || subtype === 'regexp') {
-                console[msg.type()](arg._remoteObject.description);
+                this.logger.console(data.type(), arg._remoteObject.description);
             } else {
                 try {
-                    console[msg.type()](await arg.jsonValue());
+                    this.logger.console(data.type(), await arg.jsonValue());
                 } catch (e) {}
             }
         }

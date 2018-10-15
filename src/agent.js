@@ -1,5 +1,6 @@
 import glob from 'glob';
 import Suite from './suite';
+import Logger from './logger';
 import Server from './server';
 import Browser from './browser';
 import Reporter from './reporter';
@@ -11,11 +12,12 @@ export default class Agent {
         this.options = options;
         this.suites = new Map();
         this.status = status.INIT;
-
-        this.browser = new Browser();
+        this.logger = new Logger();
         this.metrics = new Metrics();
+
         this.server = new Server(options);
-        this.reporter = new Reporter(this);
+        this.browser = new Browser(this.logger);
+        this.reporter = new Reporter(this.logger);
 
         this.addSuites(files);
     }
@@ -37,8 +39,9 @@ export default class Agent {
         this.server.on('bundled', ::this.digest);
 
         this.browser.on('suiteReady', ::this.onSuiteReady);
-        this.browser.on('specReady', ::this.onSpecReady);
-        this.browser.on('specFinished', ::this.onSpecFinished);
+        this.browser.on('hookFinished', ::this.onHookFinished);
+        this.browser.on('caseReady', ::this.onCaseReady);
+        this.browser.on('caseFinished', ::this.onCaseFinished);
         this.browser.on('suiteFinished', ::this.onSuiteFinished);
 
         process.once('SIGINT', async () => await this.stop());
@@ -56,21 +59,29 @@ export default class Agent {
         }
     }
 
-    onSuiteReady (suite, specs) {
-        this.reporter.onSuiteReady(suite, suite.start(specs));
+    onSuiteReady (suite, cases) {
+        suite.onReady(cases);
+        this.reporter.onSuiteReady(suite, cases);
     }
 
-    onSpecReady (suite, spec) {
-        this.reporter.onSpecReady(suite, suite.onSpecReady(spec));
+    onHookFinished (suite, hookState, caseState) {
+        suite.onHookFinished(hookState, caseState);
+        this.reporter.onHookFinished(suite, hookState, caseState);
     }
 
-    onSpecFinished (suite, spec) {
-        this.reporter.onSpecFinished(suite, suite.onSpecFinished(spec));
+    onCaseReady (suite, caseState) {
+        suite.onCaseReady(caseState);
+        this.reporter.onCaseReady(suite, caseState);
+    }
+
+    onCaseFinished (suite, caseState, hookState) {
+        suite.onCaseFinished(caseState, hookState);
+        this.reporter.onCaseFinished(suite, caseState, hookState);
     }
 
     async onSuiteFinished (suite, passed, cov) {
-        suite.stop(passed, cov);
-        this.reporter.onSuiteFinished(suite);
+        suite.onFinished(passed, cov);
+        this.reporter.onSuiteFinished(suite, passed, cov);
 
         const suites = [...this.suites.values()];
         if (suites.every(s => s.passed || s.failed)) {

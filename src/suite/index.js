@@ -1,5 +1,4 @@
 import path from 'path';
-import Spec from '../spec';
 import fs from '../utils/fs';
 import hash from 'string-hash';
 import Metrics from '../utils/metrics';
@@ -7,7 +6,6 @@ import * as status from '../meta/status';
 
 export default class Suite {
     constructor (srcpath, tmpdir) {
-        this.specs = new Map();
         this.status = status.INIT;
         this.metrics = new Metrics();
 
@@ -26,30 +24,27 @@ export default class Suite {
     }
 
     prepare (port, host = 'localhost') {
-        this.specs.clear();
         this.url = `http://${host}:${port}/${this.name}`;
         this.metrics.record(this.status = status.PENDING);
     }
 
-    addSpec (data) {
-        const spec = Spec.derive(data);
-        this.specs.set(spec.key, spec);
-        return spec;
+    onReady () {
+
     }
 
-    onSpecReady (data) {
-        return this.addSpec(data);
+    onHookFinished () {
+
     }
 
-    onSpecFinished (data) {
-        return this.addSpec(data);
+    onCaseReady () {
+
     }
 
-    start (specs) {
-        return specs.map(data => this.addSpec(data));
+    onCaseFinished () {
+
     }
 
-    stop (passed, cov) {
+    onFinished (passed) {
         this.metrics.end(this.status);
         this.status = passed ? status.PASSED : status.FAILED;
     }

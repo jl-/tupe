@@ -1,7 +1,14 @@
-import empower from 'power-assert';
+import assert from './core';
 
-const output = {
-    renderers: []
-};
+export function create (ctx) {
+    const instance = assert.bind(null);
+    instance.context = ctx || Object.create(null);
+    return instance;
+}
 
-export default empower.customize({ output });
+export function inherit (from) {
+    const ctx = from && from.context;
+    return create(Object.assign(Object.create(null), ctx));
+}
+
+export default { create, inherit };

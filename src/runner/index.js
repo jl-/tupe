@@ -1,4 +1,5 @@
 import Spec from '../spec';
+import Assert from '../assert';
 import EventEmitter from 'events';
 
 export default class Runner extends EventEmitter {
@@ -6,8 +7,8 @@ export default class Runner extends EventEmitter {
         super();
         this.options = options;
 
-        this.spec = null;
-        this.specs = new Map();
+        this.case = null;
+        this.hook = null;
         this.hasFailure = false;
 
         this.cases = [];
@@ -20,62 +21,72 @@ export default class Runner extends EventEmitter {
         window.onunhandledrejection = e => { throw e };
     }
 
-    addSpec (cate, title, fn, type) {
-        const spec = new Spec(title, fn, type);
-        this.specs.set(spec.key, spec);
-        cate.push(spec);
-        return spec;
-    }
-
     addCase (title, fn) {
-        return this.addSpec(this.cases, title, fn, 'case');
+        this.cases.push(new Spec(title, fn, 'case'));
     }
 
     addBeforeHook (title, fn) {
-        return this.addSpec(this.beforeHooks, title, fn, 'beforeHook');
+        this.beforeHooks.push(new Spec(title, fn, 'beforeHook'));
     }
 
     addAfterHook (title, fn) {
-        return this.addSpec(this.afterHooks, title, fn, 'afterHook');
+        this.afterHooks.push(new Spec(title, fn, 'afterHook'));
     }
 
     addBeforeEachHook (title, fn) {
-        return this.addSpec(this.beforeEachHooks, title, fn, 'beforeEachHook');
+        this.beforeEachHooks.push(new Spec(title, fn, 'beforeEachHook'));
     }
 
     addAfterEachHook (title, fn) {
-        return this.addSpec(this.afterEachHooks, title, fn, 'afterEachHook');
+        this.afterEachHooks.push(new Spec(title, fn, 'afterEachHook'));
     }
 
     async run () {
         this.hasFailure = false;
-        const runSpec = async (spec) => {
-            try {
-                this.emit(`${spec.type}:ready`, spec);
-                await (this.spec = spec).run();
-                this.emit(`${this.spec.type}:passed`, this.spec);
-            } catch (e) {
-                this.hasFailure = true;
-                this.emit(`${this.spec.type}:failed`, this.spec);
-                if (this.options.failFast) throw e;
-            }
-        };
-
-        const runHooks = async (hooks) => {
+        const runHooks = async (hooks, assert) => {
             for (const hook of hooks) {
-                await runSpec(hook);
+                try {
+                    await (this.hook = hook).run(assert);
+                } catch (e) {
+                    this.hasFailure = true;
+                    throw e;
+                } finally {
+                    const caseState = this.case && this.case.state;
+                    this.emit('hook:finished', this.hook.state, caseState);
+                }
             }
         };
 
         try {
-            this.emit('suite:ready', [...this.specs.values()]);
-            await runHooks(this.beforeHooks);
+            const rootAssert = Assert.create();
+            this.emit('suite:ready', this.cases);
+
+            // clear previous run case or hook before runing global hooks
+            this.case = this.hook = null;
+            await runHooks(this.beforeHooks, rootAssert);
+
             for (const spec of this.cases) {
-                await runHooks(this.beforeEachHooks);
-                await runSpec(spec);
-                await runHooks(this.afterEachHooks);
+                // clear previous hooks, and pre-set case so that its hooks can refer
+                this.hook = null; this.case = spec;
+                this.emit('case:ready', this.case.state);
+                try {
+                    const assert = Assert.inherit(rootAssert);
+                    await runHooks(this.beforeEachHooks, assert);
+                    await this.case.run(assert);
+                    await runHooks(this.afterEachHooks, assert);
+                } catch (e) {
+                    this.hasFailure = true;
+                    if (this.options.failFast) throw e;
+                } finally {
+                    const hookState = this.hook && this.hook.state;
+                    this.emit('case:finished', this.case.state, hookState);
+                }
             }
-            await runHooks(this.afterHooks);
+
+            // clear previous run case or hook before runing global hooks
+            // global afterHooks share the same assert with global beforeHooks
+            this.case = this.hook = null;
+            await runHooks(this.afterHooks, rootAssert);
         } finally {
             this.emit('suite:finished', !this.hasFailure);
         }

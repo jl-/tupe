@@ -1,5 +1,4 @@
 import now from '../utils/now';
-import assert from '../assert';
 import { uniq } from '../utils/string';
 import * as status from '../meta/status';
 
@@ -14,23 +13,11 @@ export default class Spec {
         this.title = typeof title === 'string' ? title : '';
     }
 
-    static derive (spec) {
-        return Object.setPrototypeOf(spec, this.prototype);
+    get state () {
+        return { ...this, fn: null };
     }
 
-    get failed () {
-        return this.status === status.FAILED;
-    }
-
-    get passed () {
-        return this.status === status.PASSED;
-    }
-
-    get pending () {
-        return this.status === status.PENDING;
-    }
-
-    async run () {
+    async run (assert) {
         this.runtime = now();
         this.status = status.PENDING;
 
@@ -57,7 +44,7 @@ export default class Spec {
     stop (err) {
         this.runtime = now() - this.runtime;
         this.status = err ? status.FAILED : status.PASSED;
-        return this.passed ? this.resolve() : this.reject(
+        return !err ? this.resolve() : this.reject(
             this.error = err !== true ? err : 'Failed with no falsy reason.'
         );
     }

@@ -1,6 +1,6 @@
-import { env } from './utils';
+import { env, resolveOptions } from './utils';
 
-export const command = '$0 <files...>';
+export const command = '$0 [<files...>]';
 export const describe = 'Run Tests';
 
 const args = {
@@ -12,20 +12,19 @@ const args = {
 
 const options = {
     watch: {
-        default: false,
+        type: 'boolean',
         describe: 'watch mode'
     },
     port: {
-        default: 1234,
+        type: 'number',
         describe: 'server port'
     },
     tmpdir: {
-        default: '.tmp',
+        type: 'string',
         describe: 'temporary directory'
     },
     'fail-fast': {
         type: 'boolean',
-        default: true,
         describe: 'exit on first fail'
     }
 };
@@ -36,10 +35,11 @@ export function builder (yargs) {
     return yargs;
 }
 
-export async function handler ({ files, ...options }) {
+export async function handler (argv) {
+    const options = resolveOptions(argv);
     try {
-        env('TUPE_FAIL_FAST', options['fail-fast']);
-        await require('../agent').run(files, options);
+        env('TUPE_FAIL_FAST', options.failFast);
+        await require('../agent').run(options);
     } catch (err) {
         console.error(err);
         process.exit(0);

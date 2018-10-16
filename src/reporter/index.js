@@ -1,20 +1,23 @@
 import figures from 'figures';
+import Coverage from './coverage';
 import string from '../utils/string';
 import { isFailed } from '../meta/status';
 import { explainError, crumbTitle } from './formatter';
 
 export default class Reporter {
-    constructor (logger) {
+    constructor (logger, config) {
         this.logger = logger;
         this.states = new Map();
         this.pendings = new Map();
         this.failures = new Map();
+        this.coverage = new Coverage(config.coverage);
     }
 
     prepare () {
         this.states.clear();
         this.pendings.clear();
         this.failures.clear();
+        this.coverage.clear();
         this.totalCaseCount = 0;
         this.passedCaseCount = 0;
     }
@@ -67,8 +70,8 @@ export default class Reporter {
         this.showPendingText(this.lastPending);
     }
 
-    onSuiteFinished (suite) {
-
+    onSuiteFinished (suite, passed, cov) {
+        this.coverage.merge(cov);
     }
 
     showPendingText (text = this.lastPending) {
@@ -78,6 +81,7 @@ export default class Reporter {
     }
 
     sumup (suites, metric) {
+        this.logger.writeln('');
         if (this.failures.size === 0) {
             this.logger.success(this.statusText);
         } else {
@@ -103,5 +107,8 @@ export default class Reporter {
             }
             this.logger.error(this.statusText);
         }
+        this.logger.writeln('');
+        this.coverage.report();
+        this.logger.writeln('\n');
     }
 }

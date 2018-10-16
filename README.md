@@ -115,6 +115,6 @@ test('array assert', t => {
 });
 ```
 
-![render1539627393699](https://user-images.githubusercontent.com/6291986/46970445-ac375700-d0eb-11e8-8125-8be313035aa0.gif)
+![render1539706926643](https://user-images.githubusercontent.com/6291986/47031717-152dd600-d1a3-11e8-8f7e-3626a45c14da.gif)
 
 ## FAQ

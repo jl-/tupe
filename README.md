@@ -5,7 +5,7 @@
 [![npm version](https://badgen.net/npm/v/tupe)](https://www.npmjs.com/package/tupe)
 [![npm downloads](https://badgen.net/npm/dm/tupe)](https://www.npmjs.com/package/tupe)
 
-##### [API](#api) | [Congiguration](#configuration) | [Examples](#examples) | [FAQ](#faq)
+##### [Features](#features) | [Motivations](#motivations) | [Configuration](#configuration) | [API](#api) | [Examples](#examples) | [FAQ](#faq)
 
 > A generic unit-testing runner for front-end.➰ 
 

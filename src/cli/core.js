@@ -1,4 +1,4 @@
-import { env, resolveOptions } from './utils';
+import * as cfg from '../config';
 
 export const command = '$0 [<files...>]';
 export const describe = 'Run Tests';
@@ -36,10 +36,10 @@ export function builder (yargs) {
 }
 
 export async function handler (argv) {
-    const options = resolveOptions(argv);
+    const config = cfg.resolve(argv);
     try {
-        env('TUPE_FAIL_FAST', options.failFast);
-        await require('../agent').run(options);
+        cfg.env('TUPE_FAIL_FAST', config.failFast);
+        await require('../agent').run(config);
     } catch (err) {
         console.error(err);
         process.exit(0);

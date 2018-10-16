@@ -1,7 +1,7 @@
 import figures from 'figures';
 import string from '../utils/string';
 import { isFailed } from '../meta/status';
-import { formatError, crumbTitle } from './formatter';
+import { explainError, crumbTitle } from './formatter';
 
 export default class Reporter {
     constructor (logger) {
@@ -92,18 +92,13 @@ export default class Reporter {
                 failedCaseCount > 0 ? `${failedCaseCount} cases` : ''
             ].filter(Boolean).join(string.dim(',  '));
 
-            const logStack = state => {
-                const error = state.error;
-                this.logger.writeln(formatError(error.powerAssertContext));
-            };
-
             this.logger.title(string.white.bgRed(` Failures `) + `  ${string.red(title)}`);
             for (const { caseState, hookState } of failures) {
                 this.logger.error(string.bold(caseState.title));
                 if (caseState && isFailed(caseState.status)) {
-                    logStack(caseState);
+                    explainError(this.logger, caseState.error);
                 } else {
-                    logStack(hookState);
+                    explainError(this.logger, hookState.error);
                 }
             }
             this.logger.error(this.statusText);

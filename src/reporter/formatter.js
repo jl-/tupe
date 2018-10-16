@@ -22,3 +22,15 @@ export function crumbTitle (filepath, title) {
 
     return [prefix, title].join(string.dim(` ${figures.arrowRight} `));
 }
+
+export function explainError (logger, error) {
+    if (error.powerAssertContext) {
+        logger.writeln(formatError(error.powerAssertContext));
+    } else {
+        logger.writeln(string.dim(error.trace));
+        logger.writeln(`\n ${string.dim(error.name + ':')}   ${error.message}\n`);
+        logger.writeln(string.red('expected: ') + JSON.stringify(error.expected));
+        logger.writeln(string.green('actual:   ') + JSON.stringify(error.actual));
+        logger.writeln('');
+    }
+}

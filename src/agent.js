@@ -6,9 +6,10 @@ import Browser from './browser';
 import Reporter from './reporter';
 import Metrics from './utils/metrics';
 import * as status from './meta/status';
+const debug = require('./utils/debug')('agent');
 
 export default class Agent {
-    constructor (files, options = {}) {
+    constructor ({ files, ...options } = {}) {
         this.options = options;
         this.suites = new Map();
         this.status = status.INIT;
@@ -103,6 +104,7 @@ export default class Agent {
     }
 }
 
-export function run (files, options) {
-    return (new Agent(files, options)).run();
+export function run (options) {
+    debug('options: ', options);
+    return (new Agent(options)).run();
 }

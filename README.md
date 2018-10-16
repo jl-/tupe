@@ -46,6 +46,32 @@ Options:
   --fail-fast    exit on first fail                    [boolean] [default: true]
 ```
 
+## Configuration
+You can configure Tupe by specifying a `tupe` field at your project's `package.json`
+
+- `files`: file or glob for test files
+- `tmpdir`: this is a temporary folder used by [Parcel](https://parceljs.org/api.html) for compiled files
+- `fail-fast`: in a test file, global `before` or `after` hooks failure will always terminate the runner as failure; For each individual case, if a `beforeEach` hook failed, this case itself and its `afterEach` hooks will not be executed, a case-failure event will araise and the runner will continue to the next case. However, by setting this option to `true`, any case failure will terminate the runner of that test file.
+- `coverage`: options for istanbul, defaults to [this](https://github.com/istanbuljs/istanbuljs/blob/master/packages/istanbul-api/lib/config.js#L14)
+
+```json
+{
+    "tupe": {
+        "files": [
+            "test/**/*.js"
+        ],
+        "tmpdir": ".tmp",
+        "fail-fast": false,
+        "coverage": {
+            "dir": "test/.coverage",
+            "reporters": ["text"],
+            "check": {
+            }
+        }
+    }
+}
+```
+
 ## API
 - `test.before([title], fn(t, [callback]))`
 - `test.beforeEach([title], fn(t, [callback]))`

@@ -13,8 +13,8 @@ export default intercept(chalk, {
 });
 
 export function camelize (string) {
-    const corece = (_, x) => x.toUpperCase();
-    return string.replace(/[_-](\w)/g, corece);
+    const coerce = (_, x) => x.toUpperCase();
+    return string.replace(/[_-](\w)/g, coerce);
 }
 
 export const uniq = function () {

@@ -21,7 +21,39 @@ There are already tons of unit-testing runner/framework for JavaScript.
 - some requires a bit configuration, like karma, not simple enough.
 - when it comes to front-end code testing that requires a browser environment, many of them utilize jsdom, which is a subset emulation of a web browser for use in nodejs environment. That's awesome, but would it be great and more reliable if our code runs in a real-world browser?
 - features like concurrency and isolation are great. You should definitely try out AVA and Jest, they are awesome. But again, they don't seems to bundle for a real-world browser? Correct me if I'm wrong, thanks~
-- Puppeteer is born, which seems to be a perfect fit for browser-side JavaScript testing. Maybe we can try it out and learn how to build a unit test runner, And have all the fun along the way, that's the whole point.~.
+- Puppeteer is born, which seems to be a perfect fit for browser-side JavaScript testing. Maybe we can try it out and learn how to build a unit test runner, And have all the fun along the way, that's the whole point..
+
+## Install
+```bash
+yarn add --dev tupe
+```
+
+## CLI
+```txt
+tupe <files...>
+
+Run Tests
+
+Positionals:
+  files  path or glob for test files                                    [string]
+
+Options:
+  -h, --help     Show help                                             [boolean]
+  -v, --verbose                                                 [default: false]
+  --watch        watch mode                                     [default: false]
+  --port         server port                                     [default: 1234]
+  --tmpdir       temporary directory                           [default: ".tmp"]
+  --fail-fast    exit on first fail                    [boolean] [default: true]
+```
+
+## API
+- `test.before([title], fn(t, [callback]))`
+- `test.beforeEach([title], fn(t, [callback]))`
+- `test.afterEach([title], fn(t, [callback]))`
+- `test.after([title], fn(t, [callback]))`
+- `test(title, fn(t, [callback]))`
+- `t` is a enhenced assert function, added with a additional `t.context` abject as a isolated context for each case, live through `beforeEach` due `afterEach` hook
+
 
 ## Examples
 

@@ -1,6 +1,6 @@
 {
   "name": "tupe",
-  "version": "0.0.0-alpha.2",
+  "version": "0.0.0-alpha.3",
   "description": "Generic unit-testing framework for front-end",
   "main": "lib/index.js",
   "bin": "bin/tupe",

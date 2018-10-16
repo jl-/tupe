@@ -9,16 +9,16 @@ import * as status from './meta/status';
 const debug = require('./utils/debug')('agent');
 
 export default class Agent {
-    constructor ({ files, ...options } = {}) {
-        this.options = options;
+    constructor ({ files, ...config } = {}) {
+        this.config = config;
         this.suites = new Map();
         this.status = status.INIT;
         this.logger = new Logger();
         this.metrics = new Metrics();
 
-        this.server = new Server(options);
+        this.server = new Server(config);
         this.browser = new Browser(this.logger);
-        this.reporter = new Reporter(this.logger);
+        this.reporter = new Reporter(this.logger, config);
 
         this.addSuites(files);
     }
@@ -104,7 +104,7 @@ export default class Agent {
     }
 }
 
-export function run (options) {
-    debug('options: ', options);
-    return (new Agent(options)).run();
+export function run (config) {
+    debug('config: ', config);
+    return (new Agent(config)).run();
 }

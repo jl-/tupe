@@ -2,6 +2,7 @@ import assert from './core';
 
 export function create (ctx) {
     const instance = assert.bind(null);
+    Object.assign(instance, assert);
     instance.context = ctx || Object.create(null);
     return instance;
 }

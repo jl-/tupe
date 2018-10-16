@@ -12,6 +12,11 @@ export default intercept(chalk, {
     pass: chalk.green,
 });
 
+export function camelize (string) {
+    const corece = (_, x) => x.toUpperCase();
+    return string.replace(/[_-](\w)/g, corece);
+}
+
 export const uniq = function () {
     const seed = 2 ** 24;
     const history = Object.create(null);

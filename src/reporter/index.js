@@ -59,7 +59,7 @@ export default class Reporter {
             this.logger.error(text);
             this.failures.set(caseState.key, { caseState, hookState });
         } else if (hookState && isFailed(hookState.status)) {
-            const title = hookState.type + hookState.title + ' Failed For';
+            const title = hookState.type + hookState.title + ' Failed For ';
             this.logger.error(title + text);
             this.failures.set(caseState.key, { caseState, hookState });
         } else {
